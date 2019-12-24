@@ -17,7 +17,7 @@
 import os
 import time
 import tarfile
-import cStringIO
+import io
 import zipfile
 import tempfile
 import shutil
@@ -134,7 +134,7 @@ class Tarball:
         loader.close()
         return loader.get_pixbuf()
 
-    def write(self, arcname, data, mode=0644):
+    def write(self, arcname, data, mode=0o644):
         """
         Stores given object to file in tarball.
         Raises BadDataTypeError exception If data type isn't supported.
@@ -154,13 +154,13 @@ class Tarball:
 
     def __write_str(self, info, data):
         info.size = len(data)
-        self.__tar.addfile(info, cStringIO.StringIO(data))
+        self.__tar.addfile(info, io.StringIO(data))
         
     def __write_pixbuf(self, info, data):
         def push(pixbuf, buffer):
             buffer.write(pixbuf)
 
-        buffer = cStringIO.StringIO()
+        buffer = io.StringIO()
         data.save_to_callback(push, 'png', user_data=buffer)
 
         info.size = buffer.tell()
