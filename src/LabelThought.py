@@ -21,26 +21,28 @@
 # Boston, MA  02110-1301  USA
 #
 
-import utils
+from . import utils
 import xml.dom
 
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Pango
 
-from BaseThought import *
-from TextThought import TextThought
+from .BaseThought import *
+from .TextThought import TextThought
+
 
 class LabelThought (TextThought):
-    def __init__ (self, coords, pango_context, thought_number, save, undo, loading, background_color, foreground_color, name="label_thought"):
-        super (LabelThought, self).__init__(coords, pango_context, thought_number, save, undo, loading, background_color, foreground_color, name)
+    def __init__(self, coords, pango_context, thought_number, save, undo, loading, background_color, foreground_color, name="label_thought"):
+        super(LabelThought, self).__init__(coords, pango_context, thought_number,
+                                           save, undo, loading, background_color, foreground_color, name)
         self.edge = True
 
     def can_be_parent(self):
         return False
 
-    def draw (self, context):
-        self.recalc_edges ()
+    def draw(self, context):
+        self.recalc_edges()
         if self.edge:
             ResizableThought.draw(self, context)
         if self.creating:
@@ -51,39 +53,40 @@ class LabelThought (TextThought):
         elif (self.foreground_color):
             r, g, b = utils.gtk_to_cairo_color(self.foreground_color)
         else:
-            r, g ,b = utils.gtk_to_cairo_color(utils.default_colors["text"])
-        context.set_source_rgb (r, g, b)
+            r, g, b = utils.gtk_to_cairo_color(utils.default_colors["text"])
+        context.set_source_rgb(r, g, b)
         self.layout.set_alignment(Pango.Alignment.CENTER)
-        context.move_to (textx, texty)
-        context.show_layout (self.layout)
+        context.move_to(textx, texty)
+        context.show_layout(self.layout)
         if self.editing:
             if self.preedit:
-                (strong, weak) = self.layout.get_cursor_pos (self.index + self.preedit[2])
+                (strong, weak) = self.layout.get_cursor_pos(
+                    self.index + self.preedit[2])
             else:
-                (strong, weak) = self.layout.get_cursor_pos (self.index)
-            (startx, starty, curx,cury) = strong
+                (strong, weak) = self.layout.get_cursor_pos(self.index)
+            (startx, starty, curx, cury) = strong
             startx /= Pango.SCALE
             starty /= Pango.SCALE
             curx /= Pango.SCALE
             cury /= Pango.SCALE
-            context.move_to (textx + startx, texty + starty)
-            context.line_to (textx + startx, texty + starty + cury)
-            context.stroke ()
-        context.set_source_rgb (0,0,0)
-        context.stroke ()
+            context.move_to(textx + startx, texty + starty)
+            context.line_to(textx + startx, texty + starty + cury)
+            context.stroke()
+        context.set_source_rgb(0, 0, 0)
+        context.stroke()
 
-    def update_save (self):
+    def update_save(self):
         next = self.element.firstChild
         while next:
             m = next.nextSibling
             if next.nodeName == "attribute":
-                self.element.removeChild (next)
-                next.unlink ()
+                self.element.removeChild(next)
+                next.unlink()
             next = m
 
         if self.text_element.parentNode is not None:
-            self.text_element.replaceWholeText (self.text)
-        text = self.extended_buffer.get_text ()
+            self.text_element.replaceWholeText(self.text)
+        text = self.extended_buffer.get_text()
         if text:
             self.extended_buffer.update_save()
         else:
@@ -91,25 +94,27 @@ class LabelThought (TextThought):
                 self.element.removeChild(self.extended_buffer.element)
             except xml.dom.NotFoundErr:
                 pass
-        self.element.setAttribute ("cursor", str(self.index))
-        self.element.setAttribute ("ul-coords", str(self.ul))
-        self.element.setAttribute ("lr-coords", str(self.lr))
-        self.element.setAttribute ("identity", str(self.identity))
-        self.element.setAttribute ("background-color", utils.color_to_string(self.background_color))
-        self.element.setAttribute ("foreground-color", utils.color_to_string(self.foreground_color))
-        self.element.setAttribute ("edge", str(self.edge))
+        self.element.setAttribute("cursor", str(self.index))
+        self.element.setAttribute("ul-coords", str(self.ul))
+        self.element.setAttribute("lr-coords", str(self.lr))
+        self.element.setAttribute("identity", str(self.identity))
+        self.element.setAttribute(
+            "background-color", utils.color_to_string(self.background_color))
+        self.element.setAttribute(
+            "foreground-color", utils.color_to_string(self.foreground_color))
+        self.element.setAttribute("edge", str(self.edge))
         if self.am_selected:
-                self.element.setAttribute ("current_root", "true")
+            self.element.setAttribute("current_root", "true")
         else:
             try:
-                self.element.removeAttribute ("current_root")
+                self.element.removeAttribute("current_root")
             except xml.dom.NotFoundErr:
                 pass
         if self.am_primary:
-            self.element.setAttribute ("primary_root", "true");
+            self.element.setAttribute("primary_root", "true")
         else:
             try:
-                self.element.removeAttribute ("primary_root")
+                self.element.removeAttribute("primary_root")
             except xml.dom.NotFoundErr:
                 pass
         doc = self.element.ownerDocument
@@ -118,57 +123,57 @@ class LabelThought (TextThought):
             r = it.range()
             for x in it.get_attrs():
                 if x.type == Pango.Weight and x.value == Pango.Weight.BOLD:
-                    elem = doc.createElement ("attribute")
-                    self.element.appendChild (elem)
+                    elem = doc.createElement("attribute")
+                    self.element.appendChild(elem)
                     elem.setAttribute("start", str(r[0]))
                     elem.setAttribute("end", str(r[1]))
                     elem.setAttribute("type", "bold")
                 elif x.type == Pango.Style and x.value == Pango.Style.ITALIC:
-                    elem = doc.createElement ("attribute")
-                    self.element.appendChild (elem)
+                    elem = doc.createElement("attribute")
+                    self.element.appendChild(elem)
                     elem.setAttribute("start", str(r[0]))
                     elem.setAttribute("end", str(r[1]))
                     elem.setAttribute("type", "italics")
                 elif x.type == Pango.Underline and x.value == Pango.Underline.SINGLE:
-                    elem = doc.createElement ("attribute")
-                    self.element.appendChild (elem)
+                    elem = doc.createElement("attribute")
+                    self.element.appendChild(elem)
                     elem.setAttribute("start", str(r[0]))
                     elem.setAttribute("end", str(r[1]))
                     elem.setAttribute("type", "underline")
                 elif x.type == Pango.AttrFontDesc:
-                    elem = doc.createElement ("attribute")
-                    self.element.appendChild (elem)
+                    elem = doc.createElement("attribute")
+                    self.element.appendChild(elem)
                     elem.setAttribute("start", str(r[0]))
                     elem.setAttribute("end", str(r[1]))
                     elem.setAttribute("type", "font")
-                    elem.setAttribute("value", x.desc.to_string ())
-            if not it.next():
+                    elem.setAttribute("value", x.desc.to_string())
+            if not next(it):
                 break
 
-    def load (self, node, tar):
-        self.index = int (node.getAttribute ("cursor"))
+    def load(self, node, tar):
+        self.index = int(node.getAttribute("cursor"))
         self.end_index = self.index
-        tmp = node.getAttribute ("ul-coords")
-        self.ul = utils.parse_coords (tmp)
-        tmp = node.getAttribute ("lr-coords")
-        self.lr = utils.parse_coords (tmp)
+        tmp = node.getAttribute("ul-coords")
+        self.ul = utils.parse_coords(tmp)
+        tmp = node.getAttribute("lr-coords")
+        self.lr = utils.parse_coords(tmp)
 
         self.width = self.lr[0] - self.ul[0]
         self.height = self.lr[1] - self.ul[1]
 
-        self.identity = int (node.getAttribute ("identity"))
+        self.identity = int(node.getAttribute("identity"))
         try:
-            tmp = node.getAttribute ("background-color")
+            tmp = node.getAttribute("background-color")
             self.background_color = Gdk.Color.parse(tmp)
-            tmp = node.getAttribute ("foreground-color")
+            tmp = node.getAttribute("foreground-color")
             self.foreground_color = Gdk.Color.parse(tmp)
         except ValueError:
             pass
 
-        self.am_selected = node.hasAttribute ("current_root")
-        self.am_primary = node.hasAttribute ("primary_root")
-        
-        if node.getAttribute ("edge") == "True":
+        self.am_selected = node.hasAttribute("current_root")
+        self.am_primary = node.hasAttribute("primary_root")
+
+        if node.getAttribute("edge") == "True":
             self.edge = True
         else:
             self.edge = False
@@ -183,7 +188,7 @@ class LabelThought (TextThought):
                 start = int(n.getAttribute("start"))
                 end = int(n.getAttribute("end"))
 
-                attr = None  ## FIXME: REMOVE THIS
+                attr = None  # FIXME: REMOVE THIS
 
                 # FIXME: Apply from start to end
                 if attrType == "bold":
@@ -198,11 +203,11 @@ class LabelThought (TextThought):
                     #attr = pango.AttrFontDesc (pango_font, start, end)
                     pass
 
-                if attr:  ## FIXME: REMOVE THIS
+                if attr:  # FIXME: REMOVE THIS
                     self.attributes.change(attr)
             else:
-                print "Unknown: "+n.nodeName
-        self.rebuild_byte_table ()
+                print("Unknown: "+n.nodeName)
+        self.rebuild_byte_table()
         self.recalc_edges()
 
     def enter(self):
@@ -218,6 +223,6 @@ class LabelThought (TextThought):
         ResizableThought.leave(self)
         self.editing = False
         self.end_index = self.index
-        self.emit ("update_links")
+        self.emit("update_links")
         self.edge = False
-        self.recalc_edges ()
+        self.recalc_edges()

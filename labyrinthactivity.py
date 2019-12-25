@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # coding=UTF-8
 
 # This program is free software; you can redistribute it and/or modify
@@ -16,6 +16,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
+from src import utils
+from src import MMapArea
+from src import UndoManager
 import sys
 import os
 import shutil
@@ -59,9 +62,6 @@ if HASTOOLBARBOX:
 # labyrinth sources are shipped inside the 'src' subdirectory
 sys.path.append(os.path.join(activity.get_bundle_path(), 'src'))
 
-import UndoManager
-import MMapArea
-import utils
 
 EMPTY = -800
 
@@ -116,7 +116,7 @@ class MyMenuItem(MenuItem):
 class FontImage(Gtk.Image):
 
     _FONT_ICON = \
-'<?xml version="1.0" encoding="UTF-8" standalone="no"?>\
+        '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\
 <svg\
    version="1.1"\
    width="27.5"\
@@ -295,7 +295,7 @@ class ViewToolbar(Gtk.Toolbar):
                 right = t.lr[0]
             if lower == None or t.lr[1] > lower:
                 lower = t.lr[1]
-            if left == None or  t.ul[0] < left:
+            if left == None or t.ul[0] < left:
                 left = t.ul[0]
             if upper == None or t.ul[1] < upper:
                 upper = t.ul[1]
@@ -311,8 +311,8 @@ class ViewToolbar(Gtk.Toolbar):
         width_scale = float(screen_width) / (width * 1.1)
         height_scale = float(screen_height) / (height * 1.1)
         return {'x': (screen_width / 2.0) - (width / 2.0 + left),
-                'y': (screen_height / 2.0) - (height / 2.0 + upper) + \
-                    style.GRID_CELL_SIZE,
+                'y': (screen_height / 2.0) - (height / 2.0 + upper) +
+                style.GRID_CELL_SIZE,
                 'scale': min(width_scale, height_scale)}
 
 
@@ -327,7 +327,7 @@ class TextAttributesToolbar(Gtk.Toolbar):
         self._font_sizes = ['8', '9', '10', '11', '12', '14', '16', '20',
                             '22', '24', '26', '28', '36', '48', '72']
 
-        self.font_button =  ToolButton('font-text')
+        self.font_button = ToolButton('font-text')
         self.font_button.set_tooltip(_('Select font'))
         self.font_button.connect('clicked', self.__font_selection_cb)
         self.insert(self.font_button, -1)
@@ -392,7 +392,7 @@ class TextAttributesToolbar(Gtk.Toolbar):
         if self._font_palette:
             if not self._font_palette.is_up():
                 self._font_palette.popup(immediate=True,
-                                    state=self._font_palette.SECONDARY)
+                                         state=self._font_palette.SECONDARY)
             else:
                 self._font_palette.popdown(immediate=True)
             return
@@ -547,21 +547,24 @@ class ThoughtsToolbar(Gtk.Toolbar):
                               MMapArea.MODE_TEXT)
         self.insert(text_mode_btn, -1)
 
-        image_mode_btn = RadioToolButton(icon_name='image-mode', group=text_mode_btn)
+        image_mode_btn = RadioToolButton(
+            icon_name='image-mode', group=text_mode_btn)
         image_mode_btn.set_tooltip(_('Image add mode'))
         image_mode_btn.set_accelerator(_('<ctrl>i'))
         image_mode_btn.connect('clicked', self._parent.mode_cb,
                                MMapArea.MODE_IMAGE)
         self.insert(image_mode_btn, -1)
 
-        draw_mode_btn = RadioToolButton(icon_name='draw-mode', group=text_mode_btn)
+        draw_mode_btn = RadioToolButton(
+            icon_name='draw-mode', group=text_mode_btn)
         draw_mode_btn.set_tooltip(_('Drawing mode'))
         draw_mode_btn.set_accelerator(_('<ctrl>d'))
         draw_mode_btn.connect('clicked', self._parent.mode_cb,
                               MMapArea.MODE_DRAW)
         self.insert(draw_mode_btn, -1)
 
-        label_mode_btn = RadioToolButton(icon_name='label-mode', group=text_mode_btn)
+        label_mode_btn = RadioToolButton(
+            icon_name='label-mode', group=text_mode_btn)
         label_mode_btn.set_tooltip(_('Label mode'))
         label_mode_btn.set_accelerator(_('<ctrl>a'))
         label_mode_btn.connect('clicked', self._parent.mode_cb,
@@ -699,7 +702,7 @@ class LabyrinthActivity(activity.Activity):
             ##tool.props.label = _('Edit'),
             toolbar_box.toolbar.insert(tool, -1)
 
-            #self._undo = UndoManager.UndoManager(self,
+            # self._undo = UndoManager.UndoManager(self,
             #                                     self.edit_toolbar.undo.child,
             #                                     self.edit_toolbar.redo.child)
 
@@ -805,7 +808,7 @@ class LabyrinthActivity(activity.Activity):
         self._main_area.connect("thought_selection_changed",
                                 self.__thought_selected_cb)
         Gdk.Screen.get_default().connect('size-changed',
-                                             self.__configure_cb)
+                                         self.__configure_cb)
 
         self._sw = Gtk.ScrolledWindow()
         self._sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -818,11 +821,11 @@ class LabyrinthActivity(activity.Activity):
 
         self.hadj = self._sw.get_hadjustment()
         self.hadj.connect("value_changed", self._hadj_adjusted_cb,
-                              self.hadj)
+                          self.hadj)
 
         self.vadj = self._sw.get_vadjustment()
         self.vadj.connect("value_changed", self._vadj_adjusted_cb,
-                              self.vadj)
+                          self.vadj)
 
         self._main_area.drag_menu_cb(self._sw, True)
         self._main_area.drag_menu_cb(self._sw, False)
@@ -895,7 +898,8 @@ class LabyrinthActivity(activity.Activity):
         context.set_line_width(4.0)
         context.set_dash([10.0, 5.0], 0.0)
         geom = list(self._main_area.window.get_geometry())
-        geom[3] = geom[3] - ((self.get_window().get_geometry()[3] - geom[3]) / 2)
+        geom[3] = geom[3] - \
+            ((self.get_window().get_geometry()[3] - geom[3]) / 2)
 
         # Make sure initial thought is "above the fold"
         if geom[2] < geom[3]:
@@ -909,7 +913,8 @@ class LabyrinthActivity(activity.Activity):
         text = _('Click to add\ncentral thought')
         layout.set_text(text, len(text))
         width, height = layout.get_pixel_size()
-        context.rectangle(geom[2] / xf - (width / 2), geom[3] / yf - (height / 2), layout.get_width(), layout.get_height())
+        context.rectangle(geom[2] / xf - (width / 2), geom[3] /
+                          yf - (height / 2), layout.get_width(), layout.get_height())
         PangoCairo.show_layout(context, layout)
 
         round = 40
@@ -995,11 +1000,11 @@ class LabyrinthActivity(activity.Activity):
                                             'instance', '%i' % time.time())
         filename = fileObject.file_path
         #pixmap = gtk.gdk.Pixmap(None, true_width, true_height, bitdepth)
-        #pixmap.set_colormap(cmap)
-        #self._main_area.export(pixmap.cairo_create(), true_width, true_height,
+        # pixmap.set_colormap(cmap)
+        # self._main_area.export(pixmap.cairo_create(), true_width, true_height,
         #                       False)
 
-        #pb = gtk.gdk.Pixbuf.get_from_drawable(
+        # pb = gtk.gdk.Pixbuf.get_from_drawable(
         #    gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, true_width,
         #                   true_height),
         #    pixmap, gtk.gdk.colormap_get_system(), 0, 0, 0, 0, true_width,
@@ -1043,7 +1048,7 @@ class LabyrinthActivity(activity.Activity):
 
         self._main_area.update_save()
         manifest = self.serialize_to_xml(self._main_area.save,
-                self._main_area.element)
+                                         self._main_area.element)
         tar.write('MANIFEST', manifest)
         self._main_area.save_thyself(tar)
 

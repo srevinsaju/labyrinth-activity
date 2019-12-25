@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Labyrinth; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, 
+# Foundation, Inc., 51 Franklin St, Fifth Floor,
 # Boston, MA  02110-1301  USA
 #
 
@@ -31,7 +31,8 @@ import os
 
 from gi.repository import Gtk
 
-from utils import *
+from .utils import *
+
 
 class TrayIcon(object):
     """This is possibly the thinnest wrapper class I've written. Ever.
@@ -41,21 +42,22 @@ class TrayIcon(object):
     It will create such an Icon, will display the image, call back the callback when left clicked and pop up the menu
     when right clicked.
     """
+
     def __init__(self, icon_name="TestTrayIcon", icon_file=None, menu=None, activate=None):
         # thats so incredibly simple!
         if icon_file:
-            self.status_icon=Gtk.StatusIcon.new_from_file(icon_file)
+            self.status_icon = Gtk.StatusIcon.new_from_file(icon_file)
 
         else:
-            self.status_icon=Gtk.StatusIcon.new_from_icon_name(icon_name)
-        
+            self.status_icon = Gtk.StatusIcon.new_from_icon_name(icon_name)
+
         # connect the menu and the callback if given
         if menu:
             self.connect_popup_menu(menu)
 
         if activate:
             self.connect_activate(activate)
-    
+
     def connect_activate(self, method):
         def activate_callback(status_icon, *data):
             method()
@@ -63,19 +65,21 @@ class TrayIcon(object):
 
     def connect_popup_menu(self,  menu):
         def popup_menu_callback(status_icon, button, activate_time, *data):
-            menu.popup(None, None, Gtk.StatusIcon.position_menu, button, activate_time, status_icon)
+            menu.popup(None, None, Gtk.StatusIcon.position_menu,
+                       button, activate_time, status_icon)
 
         self.status_icon.connect("popup-menu", popup_menu_callback)
 
+
 if __name__ == "__main__":
-   menu = Gtk.Menu()
-   quit_item = Gtk.MenuItem("Quit")
-   quit_item.connect("activate", Gtk.main_quit)
+    menu = Gtk.Menu()
+    quit_item = Gtk.MenuItem("Quit")
+    quit_item.connect("activate", Gtk.main_quit)
 
-   menu.add(quit_item)
-   menu.show_all()
+    menu.add(quit_item)
+    menu.show_all()
 
-   yell_at_them = lambda: sys.stdout.write("you hit %s...\n" % trayicon)
-   trayicon = TrayIcon(icon_name="labyrinth", menu=menu, activate=yell_at_them)
-   Gtk.main()
-
+    def yell_at_them(): return sys.stdout.write("you hit %s...\n" % trayicon)
+    trayicon = TrayIcon(icon_name="labyrinth",
+                        menu=menu, activate=yell_at_them)
+    Gtk.main()

@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with labyrinth; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, 
+# Foundation, Inc., 51 Franklin St, Fifth Floor,
 # Boston, MA  02110-1301  USA
 #
 
@@ -23,52 +23,55 @@ from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import GObject
 
-import UndoManager
+from . import UndoManager
 
 ADD_ATTR = 42
 REMOVE_ATTR = 43
 
+
 class ExtendedBuffer(Gtk.TextBuffer):
-    __gsignals__ = dict (set_focus        = (GObject.SIGNAL_RUN_FIRST,
-                                           GObject.TYPE_NONE,
-                                           ()),
-                         set_attrs      = (GObject.SIGNAL_RUN_LAST,
-                                            GObject.TYPE_NONE,
-                                            (GObject.TYPE_BOOLEAN, GObject.TYPE_BOOLEAN, GObject.TYPE_BOOLEAN, Pango.FontDescription)))
+    __gsignals__ = dict(set_focus=(GObject.SIGNAL_RUN_FIRST,
+                                   GObject.TYPE_NONE,
+                                   ()),
+                        set_attrs=(GObject.SIGNAL_RUN_LAST,
+                                   GObject.TYPE_NONE,
+                                   (GObject.TYPE_BOOLEAN, GObject.TYPE_BOOLEAN, GObject.TYPE_BOOLEAN, Pango.FontDescription)))
 
     def __init__(self, undo_manager, save, save_doc):
-        super (Gtk.TextBuffer, self).__init__()
+        super(Gtk.TextBuffer, self).__init__()
 
         self.undo = undo_manager
         self.connect('insert-text', self.insert_text_cb)
         self.connect_after('insert-text', self.apply_attrs_cb)
         self.connect('delete-range', self.delete_range_cb)
-        self.text_elem = save_doc.createTextNode ("Extended")
+        self.text_elem = save_doc.createTextNode("Extended")
         self.save = save_doc
         self.element = save
         self.element.appendChild(self.text_elem)
         self.bold_tag = self.create_tag("bold", weight=Pango.Weight.BOLD)
         self.italics_tag = self.create_tag("italics", style=Pango.Style.ITALIC)
-        self.underline_tag = self.create_tag("underline", underline=Pango.Underline.SINGLE)
+        self.underline_tag = self.create_tag(
+            "underline", underline=Pango.Underline.SINGLE)
         self.current_tags = []
         self.requested_tags = []
-        self.connect_after('mark-set',self.mark_set_cb)
+        self.connect_after('mark-set', self.mark_set_cb)
         self.bold_block = False
         self.italic_block = False
 
-    def undo_action (self, action, mode):
-        self.undo.block ()
-        self.emit ("set_focus")
+    def undo_action(self, action, mode):
+        self.undo.block()
+        self.emit("set_focus")
         if action.undo_type == UndoManager.DELETE_LETTER or action.undo_type == UndoManager.DELETE_WORD:
             real_mode = not mode
         else:
             real_mode = mode
         if real_mode == UndoManager.UNDO:
-            self.delete (self.get_iter_at_offset(action.args[0]),
-                         self.get_iter_at_offset (action.args[0]+action.args[2]))
+            self.delete(self.get_iter_at_offset(action.args[0]),
+                        self.get_iter_at_offset(action.args[0]+action.args[2]))
         else:
-            self.insert (self.get_iter_at_offset(action.args[0]), action.args[1])
-        self.undo.unblock ()
+            self.insert(self.get_iter_at_offset(
+                action.args[0]), action.args[1])
+        self.undo.unblock()
         bold = italics = underline = False
         for x in self.current_tags:
             if x == "bold":
@@ -79,22 +82,22 @@ class ExtendedBuffer(Gtk.TextBuffer):
                 underline = True
         self.emit("set_attrs_bla", bold, italics, underline, None)
 
-    def delete_range_cb (self, buffer, iter, it1):
-        text = self.get_text (iter, it1)
-        self.undo.add_undo (UndoManager.UndoAction (self, UndoManager.DELETE_LETTER, self.undo_action,
-                                                    iter.get_offset(), text, len (text), -1, None, None))
+    def delete_range_cb(self, buffer, iter, it1):
+        text = self.get_text(iter, it1)
+        self.undo.add_undo(UndoManager.UndoAction(self, UndoManager.DELETE_LETTER, self.undo_action,
+                                                  iter.get_offset(), text, len(text), -1, None, None))
         return False
 
-    def insert_text_cb (self, buffer, iter, text, length):
-        self.undo.add_undo (UndoManager.UndoAction (self, UndoManager.INSERT_LETTER, self.undo_action,
-                                                    iter.get_offset(), text, length, None, None))
+    def insert_text_cb(self, buffer, iter, text, length):
+        self.undo.add_undo(UndoManager.UndoAction(self, UndoManager.INSERT_LETTER, self.undo_action,
+                                                  iter.get_offset(), text, length, None, None))
 
         return False
 
-    def apply_attrs_cb (self, buffer, iter, text, length):
+    def apply_attrs_cb(self, buffer, iter, text, length):
         prev_iter = iter.copy()
         if not prev_iter.backward_chars(length):
-            print "Errored"
+            print("Errored")
         for x in self.current_tags:
             self.apply_tag_by_name(x, prev_iter, iter)
         return False
@@ -126,16 +129,16 @@ class ExtendedBuffer(Gtk.TextBuffer):
         self.emit("set_attrs", bold, italics, underline, None)
         return False
 
-    def update_save (self):
+    def update_save(self):
         next = self.element.firstChild
         while next:
             m = next.nextSibling
             if next.nodeName == "attribute":
-                self.element.removeChild (next)
-                next.unlink ()
+                self.element.removeChild(next)
+                next.unlink()
             next = m
 
-        self.text_elem.replaceWholeText (self.get_text())
+        self.text_elem.replaceWholeText(self.get_text())
         mark = self.get_insert()
         it = self.get_iter_at_mark(mark)
         self.element.setAttribute("mark", str(it.get_offset()))
@@ -148,8 +151,8 @@ class ExtendedBuffer(Gtk.TextBuffer):
             if iter.begins_tag(tag_table.lookup("bold")):
                 tags["bold"] = cur
             if iter.ends_tag(tag_table.lookup("bold")):
-                elem = doc.createElement ("attribute")
-                self.element.appendChild (elem)
+                elem = doc.createElement("attribute")
+                self.element.appendChild(elem)
                 start = tags.pop("bold")
                 elem.setAttribute("start", str(start))
                 elem.setAttribute("end", str(cur))
@@ -157,8 +160,8 @@ class ExtendedBuffer(Gtk.TextBuffer):
             if iter.begins_tag(tag_table.lookup("italics")):
                 tags["italics"] = cur
             if iter.ends_tag(tag_table.lookup("italics")):
-                elem = doc.createElement ("attribute")
-                self.element.appendChild (elem)
+                elem = doc.createElement("attribute")
+                self.element.appendChild(elem)
                 start = tags.pop("italics")
                 elem.setAttribute("start", str(start))
                 elem.setAttribute("end", str(cur))
@@ -166,18 +169,18 @@ class ExtendedBuffer(Gtk.TextBuffer):
             if iter.begins_tag(tag_table.lookup("underline")):
                 tags["underline"] = cur
             if iter.ends_tag(tag_table.lookup("underline")):
-                elem = doc.createElement ("attribute")
-                self.element.appendChild (elem)
+                elem = doc.createElement("attribute")
+                self.element.appendChild(elem)
                 start = tags.pop("underline")
                 elem.setAttribute("start", str(start))
                 elem.setAttribute("end", str(cur))
                 elem.setAttribute("type", "underline")
-            cur+=1
+            cur += 1
             if not iter.forward_char():
                 break
         for x in tags:
-            elem = doc.createElement ("attribute")
-            self.element.appendChild (elem)
+            elem = doc.createElement("attribute")
+            self.element.appendChild(elem)
             elem.setAttribute("start", str(tags[x]))
             elem.setAttribute("end", str(-1))
             elem.setAttribute("type", x)
@@ -202,13 +205,13 @@ class ExtendedBuffer(Gtk.TextBuffer):
 
                 self.apply_tag_by_name(attrType, start_it, end_it)
             else:
-                print "Error: Unknown type: %s.  Ignoring." % n.nodeName
+                print("Error: Unknown type: %s.  Ignoring." % n.nodeName)
         if mark:
             ins_iter = self.get_iter_at_offset(mark)
             self.move_mark_by_name("insert", ins_iter)
             self.move_mark_by_name("selection_bound", ins_iter)
 
-    def get_text (self, start=None, end=None, include_hidden_chars=True):
+    def get_text(self, start=None, end=None, include_hidden_chars=True):
         if not start:
             start = self.get_start_iter()
 
@@ -217,7 +220,7 @@ class ExtendedBuffer(Gtk.TextBuffer):
 
         return Gtk.TextBuffer.get_text(self, start, end, include_hidden_chars)
 
-    def undo_attr (self, action, mode):
+    def undo_attr(self, action, mode):
         if mode == UndoManager.UNDO:
             if action.undo_type == ADD_ATTR and len(action.args[1]) > 0:
                 self.remove_tag_by_name(action.args[0], action.args[1][0],
@@ -254,7 +257,7 @@ class ExtendedBuffer(Gtk.TextBuffer):
                 underline = True
         self.emit("set_attrs", bold, italics, underline)
 
-    def    set_bold (self, bold):
+    def set_bold(self, bold):
         selection = self.get_selection_bounds()
         if bold:
             if len(selection) > 0:
@@ -273,7 +276,7 @@ class ExtendedBuffer(Gtk.TextBuffer):
             self.undo.add_undo(UndoManager.UndoAction(self, REMOVE_ATTR, self.undo_attr,
                                                       "bold", selection))
 
-    def    set_italics (self, italics):
+    def set_italics(self, italics):
         selection = self.get_selection_bounds()
         if italics:
             if len(selection) > 0:
@@ -292,7 +295,7 @@ class ExtendedBuffer(Gtk.TextBuffer):
             self.undo.add_undo(UndoManager.UndoAction(self, REMOVE_ATTR, self.undo_attr,
                                                       "italics", selection))
 
-    def    set_underline (self, underline):
+    def set_underline(self, underline):
         selection = self.get_selection_bounds()
         if underline:
             if len(selection) > 0:
@@ -304,11 +307,10 @@ class ExtendedBuffer(Gtk.TextBuffer):
                                                       "underline", selection))
         else:
             if len(selection) > 0:
-                self.remove_tag_by_name("underline", selection[0], selection[1])
+                self.remove_tag_by_name(
+                    "underline", selection[0], selection[1])
             else:
                 self.current_tags.remove("underline")
                 self.requested_tags.remove("underline")
             self.undo.add_undo(UndoManager.UndoAction(self, REMOVE_ATTR, self.undo_attr,
                                                       "underline", selection))
-
-        
