@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # Thoughts.py
 # This file is part of Labyrinth
 #
@@ -658,29 +658,30 @@ class TextThought (ResizableThought):
             int(w), int(h)
 
     def apply_tags(self):
-        buffer = self.textview.get_buffer()
-        bounds = buffer.get_bounds()
-        if len(bounds) == 0:
-            return
+        if self.textview is not None:
+            buffer = self.textview.get_buffer()
+            bounds = buffer.get_bounds()
+            if len(bounds) == 0:
+                return
 
-        start, end = bounds
+            start, end = bounds
 
-        if self.attributes["bold"]:
-            buffer.apply_tag(self.tag_bold, start, end)
-        else:
-            buffer.remove_tag(self.tag_bold, start, end)
+            if self.attributes["bold"]:
+                buffer.apply_tag(self.tag_bold, start, end)
+            else:
+                buffer.remove_tag(self.tag_bold, start, end)
 
-        if self.attributes["italic"]:
-            buffer.apply_tag(self.tag_italic, start, end)
-        else:
-            buffer.remove_tag(self.tag_italic, start, end)
+            if self.attributes["italic"]:
+                buffer.apply_tag(self.tag_italic, start, end)
+            else:
+                buffer.remove_tag(self.tag_italic, start, end)
 
-        if self.attributes["underline"]:
-            buffer.apply_tag(self.tag_underline, start, end)
-        else:
-            buffer.remove_tag(self.tag_underline, start, end)
+            if self.attributes["underline"]:
+                buffer.apply_tag(self.tag_underline, start, end)
+            else:
+                buffer.remove_tag(self.tag_underline, start, end)
 
-        buffer.apply_tag(self.tag_font, start, end)
+            buffer.apply_tag(self.tag_font, start, end)
 
     def _textview_copy_cb(self, widget=None, event=None):
         self.textview.get_buffer().copy_clipboard(self._clipboard)

@@ -391,8 +391,7 @@ class TextAttributesToolbar(Gtk.Toolbar):
     def __font_selection_cb(self, widget):
         if self._font_palette:
             if not self._font_palette.is_up():
-                self._font_palette.popup(immediate=True,
-                                         state=self._font_palette.SECONDARY)
+                self._font_palette.popup(immediate=True)
             else:
                 self._font_palette.popdown(immediate=True)
             return
