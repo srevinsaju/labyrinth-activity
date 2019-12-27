@@ -139,14 +139,14 @@ class Tarball:
         Stores given object to file in tarball.
         Raises BadDataTypeError exception If data type isn't supported.
         """
-        info = tarfile.TarInfo(arcname.encode('utf8'))
+        info = tarfile.TarInfo(arcname)
         info.mode = mode
         info.mtime = self.mtime
 
-        if isinstance(data, str):
+        if type(data) is bytes:
             self.__write_str(info, data)
 
-        elif isinstance(data, GdkPixbuf.Pixbuf):
+        elif type(data) is GdkPixbuf.Pixbuf:
             self.__write_pixbuf(info, data)
 
         else:
@@ -154,7 +154,10 @@ class Tarball:
 
     def __write_str(self, info, data):
         info.size = len(data)
-        self.__tar.addfile(info, io.StringIO(data))
+        a = io.BytesIO()
+        a.write(data)
+        a.seek(0)
+        self.__tar.addfile(info, a)
         
     def __write_pixbuf(self, info, data):
         def push(pixbuf, buffer):
