@@ -26,6 +26,8 @@
 # news is that much of the complexity disappears.
 # --Walter Bender <walter@sugarlabs.org> 2013
 
+import gi
+gi.require_version('PangoCairo', '1.0')
 from gi.repository import Gtk, Gdk, Pango, PangoCairo
 
 import os
@@ -1148,14 +1150,16 @@ class TextThought (ResizableThought):
         # Always modify whole string
         self.index = 0
         self.end_index = len(self.text)
-        self.attributes["font"] = "%s %d" % (font_name, font_size)
-
-        start = min(self.index, self.end_index)
-        end = max(self.index, self.end_index)
-
-        self.textview.get_buffer().remove_tag(self.tag_font)
-        self.tag_font = self.textview.get_buffer().create_tag(
-            "font", self.attributes["font"])
+        self.attributes["font"] = "{} {}".format(font_name, font_size)
+        if self.textview:
+            start = min(self.index, self.end_index)
+            end = max(self.index, self.end_index)
+            self.textbuffer = self.textview.get_buffer()
+            start_iter = self.textbuffer.get_iter_at_offset(0)
+            end_iter = self.textbuffer.get_iter_at_offset(-1) 
+            self.textview.get_buffer().remove_tag(self.tag_font, start_iter, end_iter)
+            self.tag_font = self.textview.get_buffer().create_tag(
+                "font", font=self.attributes["font"])
 
         if start == end:
             self.undo.add_undo(UndoManager.UndoAction(self, UNDO_ADD_ATTR,

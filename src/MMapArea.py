@@ -38,11 +38,10 @@ import xml.dom.minidom as dom
 import math
 import time
 import string
-import gettext
+from gettext import gettext as _
 import copy
 import cairo
 import logging
-_ = gettext.gettext
 
 
 RAD_UP = (- math.pi / 2.)
