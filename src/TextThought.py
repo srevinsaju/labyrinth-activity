@@ -54,7 +54,7 @@ class TextThought (ResizableThought):
 
         self.index = 0
         self.end_index = 0
-        self.bytes = ""
+        self._bytes = ""
         self.bindex = 0
         self.text_element = save.createTextNode("GOOBAH")
         self.element.appendChild(self.text_element)
@@ -111,7 +111,7 @@ class TextThought (ResizableThought):
 
         index = 0
         for x in range(bindex):
-            index += int(self.bytes[x])
+            index += int(self._bytes[x])
 
         return index
 
@@ -122,14 +122,14 @@ class TextThought (ResizableThought):
         bind = 0
         nbytes = 0
 
-        for x in self.bytes:
+        for x in self._bytes:
             nbytes += int(x)
             bind += 1
             if nbytes == index:
                 break
 
         if nbytes < index:
-            bind = len(self.bytes)
+            bind = len(self._bytes)
 
         return bind
 
@@ -177,8 +177,8 @@ class TextThought (ResizableThought):
         if self.index > self.end_index:
             left = self.text[:self.end_index]
             right = self.text[self.index:]
-            bleft = self.bytes[:self.b_f_i(self.end_index)]
-            bright = self.bytes[self.b_f_i(self.index):]
+            bleft = self._bytes[:self.b_f_i(self.end_index)]
+            bright = self._bytes[self.b_f_i(self.index):]
             change = self.end_index - self.index + len(string)
             old = self.index
             self.index = self.end_index
@@ -186,21 +186,21 @@ class TextThought (ResizableThought):
         elif self.index < self.end_index:
             left = self.text[:self.index]
             right = self.text[self.end_index:]
-            bleft = self.bytes[:self.b_f_i(self.index)]
-            bright = self.bytes[self.b_f_i(self.end_index):]
+            bleft = self._bytes[:self.b_f_i(self.index)]
+            bright = self._bytes[self.b_f_i(self.end_index):]
             change = self.index - self.end_index + len(string)
         else:
             left = self.text[:self.index]
             right = self.text[self.index:]
-            bleft = self.bytes[:self.b_f_i(self.index)]
-            bright = self.bytes[self.b_f_i(self.index):]
+            bleft = self._bytes[:self.b_f_i(self.index)]
+            bright = self._bytes[self.b_f_i(self.index):]
             change = len(string)
 
         self.text = left + string + right
         self.undo.add_undo(UndoManager.UndoAction(self, UndoManager.INSERT_LETTER, self.undo_text_action,
                                                   self.bindex, string, len(string), self.attributes, []))
         self.index += len(string)
-        self.bytes = bleft + str(len(string)) + bright
+        self._bytes = bleft + str(len(string)) + bright
         self.bindex = self.b_f_i(self.index)
         self.end_index = self.index
 
@@ -352,19 +352,19 @@ class TextThought (ResizableThought):
             left = self.text[:self.index]
             right = self.text[self.end_index:]
             local_text = self.text[self.index:self.end_index]
-            bleft = self.bytes[:self.b_f_i(self.index)]
-            bright = self.bytes[self.b_f_i(self.end_index):]
-            local_bytes = self.bytes[self.b_f_i(
+            bleft = self._bytes[:self.b_f_i(self.index)]
+            bright = self._bytes[self.b_f_i(self.end_index):]
+            local_bytes = self._bytes[self.b_f_i(
                 self.index):self.b_f_i(self.end_index)]
             change = -len(local_text)
         else:
             left = self.text[:self.index]
-            right = self.text[self.index+int(self.bytes[self.bindex]):]
+            right = self.text[self.index+int(self._bytes[self.bindex]):]
             local_text = self.text[self.index:self.index +
-                                   int(self.bytes[self.bindex])]
-            bleft = self.bytes[:self.b_f_i(self.index)]
-            bright = self.bytes[self.b_f_i(self.index)+1:]
-            local_bytes = self.bytes[self.b_f_i(self.index)]
+                                   int(self._bytes[self.bindex])]
+            bleft = self._bytes[:self.b_f_i(self.index)]
+            bright = self._bytes[self.b_f_i(self.index)+1:]
+            local_bytes = self._bytes[self.b_f_i(self.index)]
             change = -len(local_text)
 
         changes = []
@@ -376,7 +376,7 @@ class TextThought (ResizableThought):
                                                       local_text), local_bytes, old_attrs,
                                                   changes))
         self.text = left+right
-        self.bytes = bleft+bright
+        self._bytes = bleft+bright
         self.end_index = self.index
 
     def backspace_char(self):
@@ -389,22 +389,22 @@ class TextThought (ResizableThought):
         if self.index != self.end_index:
             left = self.text[:self.index]
             right = self.text[self.end_index:]
-            bleft = self.bytes[:self.b_f_i(self.index)]
-            bright = self.bytes[self.b_f_i(self.end_index):]
+            bleft = self._bytes[:self.b_f_i(self.index)]
+            bright = self._bytes[self.b_f_i(self.end_index):]
             local_text = self.text[self.index:self.end_index]
-            local_bytes = self.bytes[self.b_f_i(
+            local_bytes = self._bytes[self.b_f_i(
                 self.index):self.b_f_i(self.end_index)]
             change = -len(local_text)
 
         else:
-            left = self.text[:self.index-int(self.bytes[self.bindex-1])]
+            left = self.text[:self.index-int(self._bytes[self.bindex-1])]
             right = self.text[self.index:]
-            bleft = self.bytes[:self.b_f_i(self.index)-1]
-            bright = self.bytes[self.b_f_i(self.index):]
+            bleft = self._bytes[:self.b_f_i(self.index)-1]
+            bright = self._bytes[self.b_f_i(self.index):]
             local_text = self.text[self.index -
-                                   int(self.bytes[self.bindex-1]):self.index]
-            local_bytes = self.bytes[self.b_f_i(self.index)-1]
-            self.index -= int(self.bytes[self.bindex-1])
+                                   int(self._bytes[self.bindex-1]):self.index]
+            local_bytes = self._bytes[self.b_f_i(self.index)-1]
+            self.index -= int(self._bytes[self.bindex-1])
             change = -len(local_text)
 
         old_attrs = self.attributes.copy()
@@ -412,7 +412,7 @@ class TextThought (ResizableThought):
         accounted = -change
 
         self.text = left+right
-        self.bytes = bleft+bright
+        self._bytes = bleft+bright
         self.end_index = self.index
 
         self.undo.add_undo(UndoManager.UndoAction(self, UndoManager.DELETE_LETTER, self.undo_text_action,
@@ -428,7 +428,7 @@ class TextThought (ResizableThought):
             self.index = 0
             return
 
-        self.index -= int(self.bytes[self.bindex-1])
+        self.index -= int(self._bytes[self.bindex-1])
 
         if not mod:
             self.end_index = self.index
@@ -437,7 +437,7 @@ class TextThought (ResizableThought):
         if self.index >= len(self.text):
             self.index = len(self.text)
             return
-        self.index += int(self.bytes[self.bindex])
+        self.index += int(self._bytes[self.bindex])
         if not mod:
             self.end_index = self.index
 
@@ -869,19 +869,19 @@ class TextThought (ResizableThought):
 
     def rebuild_byte_table(self):
         # Build the Byte table
-        del self.bytes
-        self.bytes = ''
+        del self._bytes
+        self._bytes = ''
         tmp = self.text.encode("utf-8")
         current = 0
         for z in range(len(self.text)):
             if str(self.text[z]) == str(tmp[current]):
-                self.bytes += '1'
+                self._bytes += '1'
             else:
                 blen = 2
                 while 1:
                     try:
                         if str(tmp[current:current+blen].encode()) == str(self.text[z]):
-                            self.bytes += str(blen)
+                            self._bytes += str(blen)
                             current += (blen-1)
                             break
                         blen += 1
