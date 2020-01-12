@@ -712,13 +712,22 @@ class TextThought (ResizableThought):
         return False
 
     def _textview_process(self):
+        # get text
+        buffer = self.textview.get_buffer()
+        startIter, endIter = buffer.get_bounds()    
+        text = buffer.get_text(startIter, endIter, False) 
+        
+        
+        
         self.index = 0
-        self.end_index = len(self.text)
+        self.end_index = len(text)
         self.delete_char()
+        print("self.text", self.text, self, self.textview, text)
         bounds = self.textview.get_buffer().get_bounds()
         self.add_text(self.textview.get_buffer().get_text(
             bounds[0], bounds[1], True))
-        self.emit("title_changed", self.text)
+        # self.emit("title_changed", self.text)
+        self.emit("title_changed", text)
         self.emit("update_view")
         return False
 
